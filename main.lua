@@ -1,5 +1,6 @@
 -- Made by Gabriel "Gabyfle" Santamaria
 require ("config")
+require ("helpers")
 require ("entities.player")
 require ("entities.ball")
 require ("gui.net")
@@ -12,13 +13,13 @@ function love.load() -- On game load
 end
 
 function love.update(dt)
-    local angle = ball.collide()
+    ball:collide()
     if not start then
-        ball.move(nil)
+        ball:move()
         start = true
     end
 
-    ball.move(angle)
+    ball:move()
     player.move()
 end
 

@@ -4,7 +4,8 @@ ball = {
 	["pos"] = {
 		x = config["windowSize"].width / 2,
 		y = config["windowSize"].height / 2
-	}
+	},
+	angle = helpers.random({0, 180}) -- initial angle
 }
 
 function ball.draw()
@@ -12,7 +13,7 @@ function ball.draw()
 	love.graphics.circle("fill", ball["pos"].x, ball["pos"].y, ball.radius, 100)
 end
 
-function ball.collide()
+function ball:collide()
 	local max, min =
 	{ -- Maximums table
 		["x"] = config["windowSize"].width - ball.radius * 1.5,
@@ -22,20 +23,27 @@ function ball.collide()
 		["x"] = 0,
 		["y"] = 0
 	}
-	-- If ball touch top of screen
-	if ball["pos"].y < min["y"] then return 0 end
-	-- If ball touch bottom of screen
-	if ball["pos"].y > max["y"] then return 45 end
 	--If ball touch player one
-	if ball["pos"].y >= player["one"].y and ball["pos"].y <= player["one"].y + player.height and ball["pos"].x >= config["windowSize"].width - player.width then
-		return 0
+	if ball["pos"].y > player["one"].y and ball["pos"].y < (player["one"].y + player.height) and ball["pos"].x < player.width then
+		self.angle = math.random(-45, 45)
+		return true
 	end
 	-- If ball touch player two
-	if ball["pos"].y >= player["two"].y and ball["pos"].y <= player["two"].y + player.height and ball["pos"].x >= config["windowSize"].width - player.width then
-		return 180
+	if ball["pos"].y > player["two"].y and ball["pos"].y < (player["two"].y + player.height) and ball["pos"].x > config["windowSize"].width - player.width then
+		self.angle = math.random(135, 225)
+		return true
 	end
 
-	return nil
+	-- if ball touch the top (like Drake)
+	if ball["pos"].y < min["y"] then
+		self.angle = 90 + self.angle + math.random() * self.angle
+	end
+	-- if ball touch the bottom
+	if ball["pos"].y > max["y"] then
+		self.angle = -90 + self.angle
+	end
+
+	return false
 end
 
 function ball.trajectory(angle)
@@ -47,15 +55,13 @@ function ball.trajectory(angle)
 	return x, y
 end
 
-function ball.move(angle)
-	if angle == nil then
+function ball:move()
+	if self.angle == nil then
 		multX, multY = 1, 1
-	elseif angle then
-		multX, multY = ball.trajectory(angle) -- x and y multipliers
+	elseif self.angle then
+		multX, multY = ball.trajectory(self.angle) -- x and y multipliers
 	end
 
-	ball["pos"].x = ball["pos"].x + 0.1 * multX
-	ball["pos"].y = ball["pos"].y + 0.1 * multY
-
-	love.graphics.print(tostring(ball["pos"].x))
+	ball["pos"].x = ball["pos"].x + 0.4 * multX
+	ball["pos"].y = ball["pos"].y + 0.4 * multY
 end

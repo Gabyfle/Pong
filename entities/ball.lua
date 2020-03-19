@@ -40,7 +40,7 @@ function ball:collide()
 	end
 	-- if ball touch the bottom
 	if ball["pos"].y > max["y"] then
-		self.angle = -90 + self.angle
+		self.angle = -90 + self.angle + math.random() * self.angle
 	end
 
 	return false

@@ -7,3 +7,7 @@
 
 ## Credits
 * Author : Gabriel Santamaria
+
+### Fonts
+* Font name: DS-Digital (Normal, Bold, Italic, Bold Italic), Version 1.0
+    * Author: Dusit Supasawat

@@ -1,6 +1,5 @@
-helpers = {
-
-}
+--- Helper module (util functions)
+helpers = {}
 
 --- Returns a random item in tbl
 function helpers.random(tbl)

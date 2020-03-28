@@ -8,15 +8,27 @@ points = {
             x = 0.75 * config["windowSize"].width - 10,
             y = 5
         }
+    },
+
+    pts = {
+        plyOne = 0,
+        plyTwo = 0
     }
 }
 
 local ply_one
 local ply_two
 
+function points.init() -- to be called a unique time
+    points.update(0, 0)
+end
+
 function points.update(plyOnePoints, plyTwoPoints)
     if not plyOnePoints then plyOnePoints = 0 end
     if not plyTwoPoints then plyTwoPoints = 0 end
+
+    points.pts.plyOne = plyOnePoints
+    points.pts.plyTwo = plyTwoPoints
 
     ply_one = love.graphics.newText(fonts:getFont("DS-DIGII"))
     ply_two = love.graphics.newText(fonts:getFont("DS-DIGII"))

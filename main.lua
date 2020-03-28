@@ -7,23 +7,22 @@ require ("entities.ball")
 require ("gui.net")
 require ("gui.points")
 
-local start = false
+function gameInit()
+    ball:init() -- initializing the ball object
+    player.init() -- initializing player entities
+end
 
 function love.load() -- On game load
     love.window.setMode(config["windowSize"].width, config["windowSize"].height, { resizable = false, vsync = false})
     love.window.setTitle("Pong Game - by Gabyfle")
-
     -- Loading the font that will be used to display the points number
-    value = fonts:loadFont("DS-DIGII", 60)
-    ball:init() -- initializing the ball object
-    points.update(0, 0)
+    fonts:loadFont("DS-DIGII", 60)
+
+    points.init()
+    gameInit()
 end
 
 function love.update(dt)
-    if not start then
-        start = true
-    end
-
     ball:collide()
     ball:move(dt)
     player.move()

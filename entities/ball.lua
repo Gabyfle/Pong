@@ -51,7 +51,7 @@ function ball:collide()
     end
 
     --If ball touch player one
-    if ball["pos"].y > player["one"].y and ball["pos"].y < (player["one"].y + player.height) and ball["pos"].x < player.width + 2 then
+    if ball["pos"].y > player["one"].y and ball["pos"].y < (player["one"].y + player.height) and ball["pos"].x < player.width + 5 then
         local deltaMid = math.sqrt((player["one"].y + player.height * 0.5) * (player["one"].y + player.height * 0.5) + (ball["pos"].y) * (ball["pos"].y))
 
         self.angle = deltaMid * math.pi * 0.01
@@ -59,7 +59,7 @@ function ball:collide()
         angleHasBeenComputed = false
     end
     -- If ball touch player two
-    if ball["pos"].y > player["two"].y and ball["pos"].y < (player["two"].y + player.height) and ball["pos"].x > config["windowSize"].width - player.width - 2 then
+    if ball["pos"].y > player["two"].y and ball["pos"].y < (player["two"].y + player.height) and ball["pos"].x > config["windowSize"].width - player.width - 5 then
         local deltaMid = math.sqrt((player["two"].y + player.height * 0.5) * (player["two"].y + player.height * 0.5) + (ball["pos"].y) * (ball["pos"].y))
 
         self.angle = deltaMid * math.pi * 0.01
@@ -69,13 +69,11 @@ function ball:collide()
 
     -- if ball touch the top (like Drake)
     if ball["pos"].y < min["y"] + 1 then
-        self.angle = self.angle + math.pi * 0.5
-        angleHasBeenComputed = false
+        self.speed.y = math.abs(self.speed.y)
     end
     -- if ball touch the bottom
     if ball["pos"].y > max["y"] - 1 then
-        self.angle = self.angle + math.pi * 0.5
-        angleHasBeenComputed = false
+        self.speed.y = - math.abs(self.speed.y)
     end
 
     return false

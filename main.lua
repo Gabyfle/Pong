@@ -15,17 +15,17 @@ function love.load() -- On game load
 
     -- Loading the font that will be used to display the points number
     value = fonts:loadFont("DS-DIGII", 60)
+    ball:init() -- initializing the ball object
     points.update(0, 0)
 end
 
 function love.update(dt)
     ball:collide()
     if not start then
-        ball:move()
         start = true
     end
 
-    ball:move()
+    ball:move(dt)
     player.move()
 end
 

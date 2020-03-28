@@ -5,10 +5,10 @@ ball = {
 		x = config["windowSize"].width / 2,
 		y = config["windowSize"].height / 2
 	},
-	angle = nil, -- initial angle
+	angle = 0, -- initial angle
 	-- Speed vector
 	speed = { x = 0, y = 0 },
-	speedMultiplier = 100
+	speedMultiplier = 200
 }
 
 local angleHasBeenComputed = false
@@ -33,40 +33,30 @@ function ball:collide()
 		["x"] = 0,
 		["y"] = 0
 	}
+	points.update(self.angle, self.angle)
 	--If ball touch player one
-	if ball["pos"].y > player["one"].y and ball["pos"].y < (player["one"].y + player.height) and ball["pos"].x <= player.width then
-		-- if the ball touches the center of the player one
-		if ball["pos"].y >= player["one"].y + player.height * 0.5 - 10 and ball["pos"].y <= player["one"].y + player.height * 0.5 + 10 then
-			self.angle = 0
-		end 
+	if ball["pos"].y > player["one"].y and ball["pos"].y < (player["one"].y + player.height) and ball["pos"].x < player.width + 2 then
+		local mid = player["one"].y + player.height * 0.5 - ball["pos"].y
 
+		self.angle = mid * math.pi * 0.01 + math.pi
 		angleHasBeenComputed = false
 	end
 	-- If ball touch player two
-	if ball["pos"].y > player["two"].y and ball["pos"].y < (player["two"].y + player.height) and ball["pos"].x > config["windowSize"].width - player.width then
-		-- if the ball touches the center of the player two
-		if ball["pos"].y >= player["two"].y + player.height * 0.5 - 10 and ball["pos"].y <= player["two"].y + player.height * 0.5 + 10 then
-			self.angle = math.pi
-		elseif ball["pos"].y <= player["two"].y + player.height * 0.5 - 10 then -- ball touches the bottom of the pad
-			local bottom = player.height + player.height * 0.5 - 10
-			local coefficient = bottom - ball["pos"].y
+	if ball["pos"].y > player["two"].y and ball["pos"].y < (player["two"].y + player.height) and ball["pos"].x > config["windowSize"].width - player.width - 2 then
+		local mid = player["two"].y + player.height * 0.5 - ball["pos"].y
 
-			self.angle = coefficient * math.pi / 3 + math.pi 
-		end
-		
-
-
+		self.angle = mid * math.pi * 0.02
 		angleHasBeenComputed = false
 	end
 
 	-- if ball touch the top (like Drake)
-	if ball["pos"].y < min["y"] then
-		self.angle = 90 + self.angle + math.random() * self.angle
+	if ball["pos"].y < min["y"] + 1 then
+		self.angle = self.angle + math.pi * 0.5
 		angleHasBeenComputed = false
 	end
 	-- if ball touch the bottom
-	if ball["pos"].y > max["y"] then
-		self.angle = -90 + self.angle + math.random() * self.angle
+	if ball["pos"].y > max["y"] - 1 then
+		self.angle = self.angle + math.pi * 0.5
 		angleHasBeenComputed = false
 	end
 

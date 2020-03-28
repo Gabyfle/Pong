@@ -20,11 +20,11 @@ function love.load() -- On game load
 end
 
 function love.update(dt)
-    ball:collide()
     if not start then
         start = true
     end
 
+    ball:collide()
     ball:move(dt)
     player.move()
 end

@@ -1,7 +1,9 @@
 # Pong
  A Pong game created in Lua with the **LÖVE2D** engine
-
-
+ 
+<p align="center">
+  <img width="300" height="300" src="https://raw.githubusercontent.com/Gabyfle/Pong/master/PongPing.png">
+</p>
 
 ## How to play
 * Install **[LÖVE2D](https://love2d.org/)**

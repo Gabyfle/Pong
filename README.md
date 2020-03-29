@@ -11,7 +11,7 @@
 
 ## Credits
 ### Code
-* **<ins>Author :</ins>** **Gabriel Santamaria**
+* **<ins>Author</ins>** : **Gabriel Santamaria**
 ### Fonts
-* **<ins>Font name</ins>**: [DS-Digital](https://www.dafont.com/fr/ds-digital.font) (Normal, **Bold**, *Italic*, ***Bold Italic***), *Version 1.0*
-    * <ins>Author</ins>: **Dusit Supasawat**
+* **<ins>Font name</ins>** : [DS-Digital](https://www.dafont.com/fr/ds-digital.font) (Normal, **Bold**, *Italic*, ***Bold Italic***), *Version 1.0*
+    * **<ins>Author</ins>** : **Dusit Supasawat**

@@ -9,11 +9,11 @@ require ("gui.points")
 
 function gameInit()
     ball:init() -- initializing the ball object
-    player.init() -- initializing player entities
+    player.init(two) -- initializing player entities
 end
 
 function love.load() -- On game load
-    love.window.setMode(config["windowSize"].width, config["windowSize"].height, { resizable = false, vsync = false})
+    love.window.setMode(600, 600, { resizable = false, vsync = false})
     love.window.setTitle("Pong Game - by Gabyfle")
     -- Loading the font that will be used to display the points number
     fonts:loadFont("DS-DIGII", 60)
@@ -33,6 +33,6 @@ function love.draw()
     points.draw()
     ball.draw()
 
-    player.draw(0, player["one"].y)
-    player.draw(config["windowSize"].width - player.width, player["two"].y)
+    player.draw(0, player["local"].y)
+    player.draw(600 - player.width, player["lan"].y)
 end

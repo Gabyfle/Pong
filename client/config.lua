@@ -4,13 +4,12 @@ config = {
 		height = 600
 	},
 	["keys"] = { -- See https://love2d.org/wiki/KeyConstant for available keys
-		["one"] = { -- Player one's keys
-			up = "z",
-			down = "s"
-		},
-		["two"] = { -- Player two's keys
-			up = "up",
-			down = "down"
-		}
+		up = "z",
+		down = "s"
+	},
+	-- server to join
+	["server"] = {
+		ip = "127.0.0.1",
+		port = 1234
 	}
 }

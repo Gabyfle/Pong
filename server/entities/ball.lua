@@ -2,8 +2,8 @@ ball = {
     radius = 10, -- so 20 pixels in diameter
     color = { 3, 2, 1, 100 },
     ["pos"] = {
-        x = config["windowSize"].width / 2,
-        y = config["windowSize"].height / 2
+        x = 300,
+        y = 300
     },
     angle = 0, -- initial angle
     -- Speed vector
@@ -19,21 +19,16 @@ function ball:init()
     self.speed.y = 0
     self.speedMultiplier = 300
     ball["pos"] = {
-        x = config["windowSize"].width / 2,
-        y = config["windowSize"].height / 2
+        x = 300,
+        y = 300
     }
-end
-
-function ball.draw()
-    love.graphics.setColor(ball.color)
-    love.graphics.circle("fill", ball["pos"].x, ball["pos"].y, ball.radius, 100)
 end
 
 function ball:collide()
     local max, min =
     { -- Maximums table
-        ["x"] = config["windowSize"].width - ball.radius * 1.5,
-        ["y"] = config["windowSize"].height - ball.radius * 1.5
+        ["x"] = 600 - ball.radius * 1.5,
+        ["y"] = 600 - ball.radius * 1.5
     },
     { -- Minimums table
         ["x"] = 0,
@@ -45,7 +40,7 @@ function ball:collide()
         gameInit()
     end
 
-    if ball["pos"].x >= config["windowSize"].width then
+    if ball["pos"].x >= 600 then
         points.update(points.pts.plyOne + 1, points.pts.plyTwo)
         gameInit()
     end

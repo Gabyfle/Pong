@@ -1,7 +1,8 @@
+package.path = '../shared/libs/?.lua;' .. package.path
+
 local socket = require('socket')
 local json   = require('cjson')
-
-require('timer')
+local timer  = require('timer')
 
 -- Generating a random seed for Players' connexion key
 math.randomseed(os.time())
@@ -10,24 +11,12 @@ math.randomseed(os.time())
 -- @return string: the randomly generated string
 local function randomString()
     local string = ""
-    for i = 1, 50 do
-        string = string .. string.char(math.random(1, 4) * i)
+    for i = 1, 16 do
+        local char = math.random(33, 126)
+        string = string .. string.char(char)
     end
 
     return string
-end
-
---- Finds the entry that has the key "key" which is equal to "value"
--- @param table table: the table in which it should do the check
--- @param varargs key: the key to check
--- @param varargs value: the value to check
--- @return varargs: key of the correspondant value
-local function findWithKey(table, key, value)
-    for k, v in pairs(table) do
-        if type(v) == 'table' and v[key] and v[key] == value then
-            return k
-        end
-    end
 end
 
 --- Displays a log message to server console
@@ -46,7 +35,6 @@ local function log(message, log, ...)
         log_file:write(final .. '\n')
         log_file:close()
     end
-    print(final)
 end
 
 local server = {
@@ -80,18 +68,18 @@ function server:init(port)
     log('Trying to bind your server to a IP/PORT...', self._serv.log)
     self._serv.socket:setsockname('*', port)
 
-
-
     -- print to the client that everything is okay
     log('Your Pong server has been initialized', self._serv.log, self._serv.log)
     self._serv.ip, self._serv.port = self._serv.socket:getsockname()
     log('Server IP: %s', self._serv.log, self._serv.ip)
     log('Server PORT: %s', self._serv.log, self._serv.port)
 end
+
 --- Register a couple of (ip, port) as a client
--- @param number ip: 
+-- @param number ip: Client IP
+-- @param number port: Client PORT
 function server:register(ip, port)
-    local key = randomString()
+    local key = randomString() -- this is the player's unique name
     self._players[key] = { -- register this player as an actual player (lel)
         ip = ip,
         port = port,
@@ -143,6 +131,7 @@ function server:run()
         socket.sleep(0.01)
     end
 end
+
 --- When the server receive data from a player, decode it and then update stuff from it
 -- @param string data: data encoded in JSON format
 function server:receive(data)
@@ -161,6 +150,3 @@ function server:broadcast(data)
         -- send the data to everyone
     end
 end
-
-server:init(1234)
-server:run()

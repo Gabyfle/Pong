@@ -19,12 +19,28 @@
 * **Enjoy** playing this *beautiful*, *amazing* and *stunning* game !
 
 ## How does it works
+### Protocol
+This protocol is based on UDP to ensure a minimum efficiency
+  * #### General operation
+    * On the first player connexion, we generate a random string that will be his authentification key
+    * Each time the client send some data, he send his authentification key with it so that the server can check that it's a current player
+    * Right after the last data receive from a particular client, we start a timer. If this timer ends up before a new data receive from this client, then we consider that he timed out and we end the connexion
+
+  * #### Limitations
+    * There is no checksum to check if the packet is corrupted
+    * The random string is not efficient to ensure a basic security
+
+### Server
 * We firstly create a server which is waiting for 2 clients to start a game
 * When two clients are connected, the game is started by the server
 * Each time a client moves, he sends a JSON string to the server that contains data of his movements
 * On serverside, the angle is calculated depending on whether or not the ball collided something
 * Trajectory is calculated on both sides, which means that only the angles are calculated serverside which is less heavy for the network
-* Once the ball collided something, the server calculates the 
+* Once the ball collided something, the server calculates the angle and send it to the player
+
+### Client
+* We initialize the client by trying to connect to the given IP in the `config` file
+  * If we do not receive 
 
 ## Credits
 ### Code

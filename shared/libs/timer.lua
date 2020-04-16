@@ -1,6 +1,6 @@
 -- This is a very (very) basic timer helper for our server
-
-timer = {
+-- This is a shared library
+local timer = {
     _timers = {}
 }
 
@@ -43,8 +43,7 @@ function timer:create(name, delay, callback, ...)
     callback(...)
 end
 
---- Completly stop a timer
--- @param string name: timer's unique name
+--- Completely stops a timer
 function timer:stop(name)
     if not self._timers[name] then
         error('Unknown timer called ' .. name)
@@ -52,3 +51,37 @@ function timer:stop(name)
 
     self._timers[name] = nil
 end
+
+--- Repeats a "callback" call "repeatitions" times every "delay" seconds
+-- @param string name: name of the timer
+-- @param number repeatitions: number of times to repeat the process
+-- @param number delay: delay between each repeatition
+-- @param function callback: callback function to call right after a repeatition ended
+function timer:regular(name, repeatitions, delay, callback,  ...)
+    if self._timer[name] then
+        error('You\'re using an already existing name')
+    end
+
+    self._timers[name] = {
+        repeats = repeatitions,
+        thread = coroutine.create(delayer)
+    }
+
+    while self._times[name].repeats do
+        coroutine.resume(self._timers[name].thread, delay)
+
+        while coroutine.status(self._timers[name].thread) ~= 'dead' do
+            if coroutine.status(self._timers[name].repeats) == 'suspended' then
+                coroutine.resume(self._timers[name].thread)
+                sleep(0.01)
+            end
+        end
+
+        --- we give to callback the number of left repeatitions
+        self._timers[name].repeats = self._timers[name].repeats - 1
+        callback(self._times[name].repeats, ...)
+    end
+
+end
+
+return timer

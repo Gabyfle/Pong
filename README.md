@@ -40,7 +40,8 @@ This protocol is based on UDP to ensure a minimum efficiency
 
 ### Client
 * We initialize the client by trying to connect to the given IP in the `config` file
-  * If we do not receive 
+  * If we do not receive an answer from the server within a certain delay, then we consider the server as down
+* Each time we move we send movement data to server
 
 ## Credits
 ### Code

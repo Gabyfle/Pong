@@ -1,3 +1,11 @@
+--[--[--------------------]--]--
+-- Project: Pong              --
+-- File: player.lua           --
+--                            --
+-- Author: Gabyfle            --
+-- License: Apache 2.0        --
+--]--]--------------------[--[--
+
 player = {
     width = 15,
     height = 100,

@@ -20,7 +20,7 @@
 
 ## How does it works
 ### Protocol
-This protocol is based on UDP to ensure a minimum efficiency
+This protocol is based on UDP to ensure a minimum efficiency. During all the server life, players are identified by their authentification key.
   * #### General operation
     * On the first player connexion, we generate a random string that will be his authentification key
     * Each time the client send some data, he send his authentification key with it so that the server can check that it's a current player
@@ -38,6 +38,29 @@ This protocol is based on UDP to ensure a minimum efficiency
 * Trajectory is calculated on both sides, which means that only the angles are calculated serverside which is less heavy for the network
 * Once the ball collided something, the server calculates the angle and send it to the player
 
+  #### Player table
+  A player is defined by a table that contains its authentification key, its IP and the PORT.
+  Here is the player table :
+
+  ```lua
+  {
+    [ply1] = {
+      key          = ply1,
+      ip           = '',
+      port         = 0,
+      data         = player
+      last_request = 0
+    },
+    [ply2] = {
+      key          = ply2,
+      ip           = '',
+      port         = 0,
+      data         = player
+      last_request = 0
+    }
+  }
+  ```
+  Where `ply1` and `ply2` are the players' authentification keys
 ### Client
 * We initialize the client by trying to connect to the given IP in the `config` file
   * If we do not receive an answer from the server within a certain delay, then we consider the server as down

@@ -1,35 +1,36 @@
-player = {
+--[--[--------------------]--]--
+-- Project: Pong              --
+-- File: player.lua           --
+--                            --
+-- Author: Gabyfle            --
+-- License: Apache 2.0        --
+--]--]--------------------[--[--
+
+local player = {
     width = 15,
     height = 100,
     color = { 1, 1, 0, 100 },
-    ["one"] = { -- player one ordinate
-        y = 250
-    },
-    ["two"] = { -- player two ordinate
-        y = 250
-    }
+    y = 250
 }
 
 --- Player initialization
-function player.init()
-    player["one"].y = 300 - player.height * 0.5
-    player["two"].y = 300 - player.height * 0.5
+function player:init()
+    self.y = 300 - self.height * 0.5
 end
 
+local MAX = 300 - player.height -- Maximum y
+local MIN = 0
 
 --- Updates a player's ordinate
 -- @param string ply: Player's name
-function player:update(ply, y)
-    local max = 300 - player.height -- Maximum y
-    if ply ~= "one" and ply ~= "two" then
-        print("Unknown player " .. tostring(ply))
+function player:update(y)
+    if y > MAX then
+        self.y = MAX
+    elseif y < MIN then
+        self.y = MIN
     else
-        if y > max then
-            print("Trying to set a y greater than " .. max ..". Aborting.")
-        else
-            self[ply].y = y
-        end
+        self.y = y
     end
 end
 
-
+return player

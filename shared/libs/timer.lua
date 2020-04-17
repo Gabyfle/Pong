@@ -1,5 +1,11 @@
--- This is a very (very) basic timer helper for our server
--- This is a shared library
+--[--[--------------------]--]--
+-- Project: Pong              --
+-- File: timer.lua            --
+--                            --
+-- Author: Gabyfle            --
+-- License: Apache 2.0        --
+--]--]--------------------[--[--
+
 local timer = {
     _timers = {}
 }
@@ -82,6 +88,17 @@ function timer:regular(name, repeatitions, delay, callback,  ...)
         callback(self._times[name].repeats, ...)
     end
 
+end
+
+--- Returns whether or not a timer does exist
+-- @param string name: name of the timer
+-- @return bool
+function timer:exists(name)
+    if self._timers[name] then
+        return true
+    else
+        return false
+    end
 end
 
 return timer

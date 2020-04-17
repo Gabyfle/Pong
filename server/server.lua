@@ -11,16 +11,21 @@ local socket = require('socket')
 local json   = require('cjson')
 local timer  = require('timer')
 
+-- Generating a random seed for Players' connexion key
+math.randomseed(os.time())
+
 -- SERVER CONSTANT
 local KNOWN_ACTIONS =
 {
-    ['register'] = true,
     ['ping'] = true,
-    ['move'] = true
+    ['move'] = function (ply, key)
+        if key == 'up' then
+            ply:update(ply.y + 1)
+        elseif key == 'down' then
+            ply:update(ply.y - 1)
+        end
+    end
 }
-
--- Generating a random seed for Players' connexion key
-math.randomseed(os.time())
 
 --- Generates a random string
 -- @return string: the randomly generated string
@@ -114,29 +119,38 @@ function server:register(ip, port)
         }
     ]], key)
 
-    local client = self._players[key]
-    if not client then
-        error('A fatal error occurred right after registering the client into the server.')
-    end
-
-    -- TODO : send this JSON data to the player
+    local data = string.pack(registered)
+    self:sendToPlayer(key, data)
 end
 
 --- Execute a particular action on player ply
 -- @param string action: action to execute
+-- @param string ply: player to execute the action on or IP to register
 -- @param table data: a table containing the received data
--- @param string ply: player to execute the action on
-function server:execute(action, data, ply)
-    ply = ply or ''
+function server:execute(action, ply, data)
     if not KNOWN_ACTIONS[action] then
         log('Someone tried to launch an unknown action called %s', ply)
     end
 
     if action == 'move' then
-        if not self._players[ply] then return end
+        if not self.players[ply] then return end
         local ply_data = self._players[ply].data
-
-        ply_data:update(data.y)
+        if not data['key'] then return end -- maybe the data is corrupted so abort
+        KNOWN_ACTIONS[action](ply_data, data['key'])
+    elseif action == 'ping' then
+        if not self.players[ply] then return end
+        if data['status'] and data['status'] == 'waiting' then
+            self:sendToPlayer(ply, string.pack([[
+                {
+                    "action": "ping",
+                    "data": {
+                        "status": "ok"
+                    }
+                }
+            ]]))
+        elseif data['status'] and data['status'] == 'ok' then
+            -- TODO: launch a new timer that will wait x secs before pinging again
+        end
     end
 end
 
@@ -156,49 +170,49 @@ function server:receive()
     data = string.unpack(data)
     data = json.decode(data)
 
-    if not data['key'] or not self._players[data['key']] then
-        self:register()
-    else
-        local ply, action, ip, port = data['key'], data['action'], data['ip'], data['port']
-        if not action or not KNOWN_ACTIONS[action] then
-            log('Player %s sent an unknown action: %s', ply, action)
+    if data then
+        if #self._players < 2 and not (data['key'] and self._players[data['key']]) then
+            self:register()
         else
-            server:execute(ply, action)
+            if not (data['key'] and self._players[data['key']]) then
+                log('A client tried to connect on server with IP: %s and PORT: %s', self._serv.log, ip, port)
+                log('Actually, he didn\'t send any registered key, so I just rejected him!')
+                return
+            end
+            local ply, action = data['key'], data['action']
+            if not (action and KNOWN_ACTIONS[action]) then
+                log('Player %s sent an unknown action: %s', ply, action)
+            else
+                server:execute(ply, action)
+            end
         end
+    elseif ip ~= 'timeout' then
+        error('A fatal error occurred while receiving package from a client. Error: ' .. tostring(ip))
     end
 end
 
 --- Server's main loop
 function server:run()
-    log('Your Pong server is now running.',self._serv.log)
+    log('Your Pong server is now running.', self._serv.log)
     while true do
-        if data then
-            data = json.decode(data)
-            if #self._players < 2 then -- this player is one of the two first _players
-                self:register(ip, port)
-            elseif not data.key or not self._players[data.key] then
-                log('A client tried to connect on server with IP: %s and PORT: %s', self._serv.log, ip, port)
-                log('Actually, he didn\'t send any registered key, so I just rejected him!')
-            end
-        elseif ip ~= 'timeout' then
-            error('A fatal error occurred while receiving package from a client. Error: ' .. tostring(ip))
-        end
-
+        self:receive()
         socket.sleep(0.01)
     end
 end
 
 --- Sends a piece of data to a particular player
 -- @param table ply: the player to send the data on
--- @param string data: the data encoded in json
+-- @param binary string data: the serialized data encoded in json
 function server:sendToPlayer(ply, data)
+    self._serv.socket:sendto(data, ply.ip, ply.port)
 end
 
 --- Sends some data to all the players
 -- @param string data: data encoded in JSON format
 function server:broadcast(data)
+    data = string.pack(data)
     for _, ply in pairs(self._players) do
-        -- send the data to everyone
+        self:sendToPlayer(ply, data)
     end
 end
 

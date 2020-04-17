@@ -66,6 +66,19 @@ This protocol is based on UDP to ensure a minimum efficiency. During all the ser
   * If we do not receive an answer from the server within a certain delay, then we consider the server as down
 * Each time we move we send movement data to server
 
+### Data
+Game data is transferred from client to server (vice-versa) throught network in JSON format. The structure of a typical game data is:
+
+```json
+{
+  "key": "<authentification key>",
+  "action": "move",
+  "data": {
+      "key": "up"
+  }
+}
+```
+
 ## Credits
 ### Code
 * **<ins>Author</ins>** : **Gabriel Santamaria**

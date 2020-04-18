@@ -6,16 +6,10 @@
 -- License: Apache 2.0        --
 --]--]--------------------[--[--
 
-local config = {
-	keys = { -- See https://love2d.org/wiki/KeyConstant for available keys
-		up = "z",
-		down = "s"
-	},
-	-- server to join
-	server = {
-		ip = "127.0.0.1",
-		port = 1234
-	}
-}
+local config = {}
+
+
+config.MAX_DELAY = 15 -- max delay between two answers from the client
+config.PORT = 2302 -- server port
 
 return config

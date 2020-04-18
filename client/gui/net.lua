@@ -1,15 +1,23 @@
-net = {
+--[--[--------------------]--]--
+-- Project: Pong              --
+-- File: net.lua              --
+--                            --
+-- Author: Gabyfle            --
+-- License: Apache 2.0        --
+--]--]--------------------[--[--
+
+local net = {
     width = 4,
     color = { 1, 1, 0, 100 }
 }
 net["pos"] = {
-    x = config["windowSize"].width / 2 - net.width / 2, -- abscissa center of window
+    x = 298, -- abscissa center of window
     y = 0, -- initial ordonate
     newY = 30
 }
 
 function net.draw() -- shapes the net
-    local max, size, interval = config["windowSize"].height, 60, 40
+    local max, size, interval = 600, 60, 40
     local v = size / interval
 
     love.graphics.setColor(net.color)
@@ -25,3 +33,5 @@ function net.draw() -- shapes the net
         end
     end
 end
+
+return net

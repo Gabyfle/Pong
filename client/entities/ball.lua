@@ -1,4 +1,12 @@
-ball = {
+--[--[--------------------]--]--
+-- Project: Pong              --
+-- File: ball.lua             --
+--                            --
+-- Author: Gabyfle            --
+-- License: Apache 2.0        --
+--]--]--------------------[--[--
+
+local ball = {
     radius = 10, -- so 20 pixels in diameter
     color = { 3, 2, 1, 100 },
     ["pos"] = {
@@ -6,12 +14,11 @@ ball = {
         y = 300
     },
     angle = 0, -- initial angle
+    angleHasBeenComputed = false,
     -- Speed vector
     speed = { x = 0, y = 0 },
     speedMultiplier = 300
 }
-
-local angleHasBeenComputed = false
 
 function ball:init()
     local values = { -1, 1 }
@@ -39,9 +46,9 @@ function ball.trajectory(angle)
 end
 
 function ball:move(dt)
-    if self.angle and not angleHasBeenComputed then
+    if self.angle and not self.angleHasBeenComputed then
         self.speed.x, self.speed.y = self.trajectory(self.angle)
-        angleHasBeenComputed = true
+        self.angleHasBeenComputed = true
     end
 
     ball["pos"].x = ball["pos"].x + self.speed.x * dt * ball.speedMultiplier

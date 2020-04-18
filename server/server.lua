@@ -7,9 +7,11 @@
 --]--]--------------------[--[--
 package.path = '../shared/libs/?.lua;' .. package.path
 
+local config = require('config')
 local socket = require('socket')
 local json   = require('cjson')
-local timer  = require('timer')
+
+local player = require('entities.player')
 
 -- Generating a random seed for Players' connexion key
 math.randomseed(os.time())
@@ -101,6 +103,14 @@ end
 function server:register(ip, port)
     if #self._players == 2 then
         log('A client with IP: %s tried to connect on the server but we were already 2!', ip)
+        -- inform the client that this server is full
+        local register = string.pack([[
+            {
+                "action": "register",
+                "key": "full"
+            }
+        ]])
+        self:sendTo(ip, port, register)
         return
     end
 
@@ -148,14 +158,12 @@ function server:execute(action, ply, data)
                     }
                 }
             ]]))
-        elseif data['status'] and data['status'] == 'ok' then
-            -- TODO: launch a new timer that will wait x secs before pinging again
         end
     end
 end
 
---- Delete the player from the players table and notify that he has timed out
--- @param string player: player's name
+--- Launched when a player timed out, disconnect him
+-- @param string ply: player's authentification key
 function server:timedout(ply)
     if not self._players[ply] then
         error('Player ' .. ply .. ' does not exist')
@@ -180,6 +188,7 @@ function server:receive()
                 return
             end
             local ply, action = data['key'], data['action']
+            self._players[ply].last_request = os.time()
             if not (action and KNOWN_ACTIONS[action]) then
                 log('Player %s sent an unknown action: %s', ply, action)
             else
@@ -195,6 +204,23 @@ end
 function server:run()
     log('Your Pong server is now running.', self._serv.log)
     while true do
+        for id, ply in pairs(self._players) do
+            if ply.last_request then
+                local delay = os.difftime(os.time(), ply.last_request)
+                if delay > 5 and delay < config.MAX_DELAY - 5 then
+                    self:sendToPlayer(id, string.pack([[
+                        {
+                            "action": "ping",
+                            "data": {
+                                "status": waiting
+                            }
+                        }
+                    ]]))
+                elseif delay > config.MAX_DELAY then
+                    self:timedout(id)
+                end
+            end
+        end
         self:receive()
         socket.sleep(0.01)
     end
@@ -205,6 +231,14 @@ end
 -- @param binary string data: the serialized data encoded in json
 function server:sendToPlayer(ply, data)
     self._serv.socket:sendto(data, ply.ip, ply.port)
+end
+
+--- Sends a piece of data to a particular client
+-- @param string ip: IP of the client
+-- @param number port: PORT of the client
+-- @param binary data: the serialized data encoded in json
+function server:sendTo(ip, port, data)
+    self._serv.socket:sendto(data, ip, port)
 end
 
 --- Sends some data to all the players

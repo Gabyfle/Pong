@@ -62,6 +62,7 @@ function ball:collide(one, two)
 
         self.angle = deltaMid * math.pi * 0.01
         self.speedMultiplier = self.speedMultiplier + self.speedMultiplier * 0.02
+        --- TODO: send ball data to the player
         angleHasBeenComputed = false
     end
     -- If ball touch player two
@@ -70,16 +71,19 @@ function ball:collide(one, two)
 
         self.angle = deltaMid * math.pi * 0.01
         self.speedMultiplier = self.speedMultiplier + self.speedMultiplier * 0.02
+        --- TODO: send ball data to the player
         angleHasBeenComputed = false
     end
 
     -- if ball touch the top (like Drake)
     if ball["pos"].y < min["y"] + 1 then
         self.speed.y = math.abs(self.speed.y)
+        -- TODO: send ball data to the player
     end
     -- if ball touch the bottom
     if ball["pos"].y > max["y"] - 1 then
         self.speed.y = - math.abs(self.speed.y)
+        -- TODO: send ball data to the player
     end
 
     return false

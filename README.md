@@ -62,6 +62,8 @@ This protocol is based on UDP to ensure a minimum efficiency. During all the ser
   ```
   Where `ply1` and `ply2` are the players' authentification keys
 ### Client
+Since all the clients see themselves in the left side of the screen, we have to ensure 
+
 * We initialize the client by trying to connect to the given IP in the `config` file
   * If we do not receive an answer from the server within a certain delay, then we consider the server as down
 * Each time we move we send movement data to server

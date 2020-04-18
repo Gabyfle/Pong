@@ -13,11 +13,6 @@ local player = {
     y = 250
 }
 
---- Player initialization
-function player:init()
-    self.y = 300 - self.height * 0.5
-end
-
 local MAX = 300 - player.height -- Maximum y
 local MIN = 0
 

@@ -20,7 +20,7 @@ function fonts:loadFont(name, size)
         return false
     end
 
-    local font_path = "fonts/" .. name .. ".ttf"
+    local font_path = 'fonts/' .. name .. '.TTF'
     self.fonts[name] = love.graphics.newFont(font_path, size)
 end
 

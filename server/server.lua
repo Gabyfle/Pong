@@ -57,6 +57,8 @@ local function log(message, log, ...)
         log_file:write(final .. '\n')
         log_file:close()
     end
+
+    print(final)
 end
 
 local server = {
@@ -75,12 +77,9 @@ function server:init(port)
     -- Log file stuff
     self._serv.log = string.format('pong_server_log_%s.log', os.date('%m_%d_%y_%X',os.time()))
     do
-        local log_file = io.open(self._serv.log, 'r')
-        if not log_file then
-            local file = io.open(self._serv.log, 'w')
-            file:write()
-            file:close()
-        end
+        local file = io.open(self._serv.log, 'w')
+        file:write()
+        file:close()
     end
     log('Log file is ready! File name: %s', self._serv.log, self._serv.log)
 
@@ -175,9 +174,8 @@ end
 --- When the server receive data from a player, decode it and then update stuff from it
 function server:receive()
     local data, ip, port = self._serv.socket:receivefrom()
-    data = json.decode(love.data.decompress('string', 'lz4', data))
-
     if data then
+        data = json.decode(love.data.decompress('string', 'lz4', data))
         if #self._players < 2 and not (data['key'] and self._players[data['key']]) then
             self:register()
         else

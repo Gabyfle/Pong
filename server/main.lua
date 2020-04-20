@@ -8,26 +8,21 @@
 local config = require('config')
 local server = require('server')
 -- entities
-local ball = require('entities.ball')
+local ball   = require('entities.ball')
 local player = require('entities.player')
 
-function love.init()
+
+function love.load()
     -- server initialization
     server:init(config.PORT)
-    ball:init()
 
-    -- then, run the server
-    server:run()
+    ball:init()
 end
 
 function love.update(dt)
     ball:collide()
     ball:move(dt)
-end
 
-function love.draw()
-    net.draw()
-    points.draw()
-    ball.draw()
-
+    -- then, run the server
+    server:run()
 end

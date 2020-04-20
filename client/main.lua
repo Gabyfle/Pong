@@ -5,14 +5,13 @@
 -- Author: Gabyfle            --
 -- License: Apache 2.0        --
 --]--]--------------------[--[--
-local config  = require("config")
-local fonts   = require("fonts.fonts")
-local player  = require("entities.player")
-local ball    = require("entities.ball")
-local net     = require("gui.net")
-local points  = require("gui.points")
-
-local client = require('client')
+local config  = require('config')
+local fonts   = require('fonts.fonts')
+local player  = require('entities.player')
+local ball    = require('entities.ball')
+local net     = require('gui.net')
+local points  = require('gui.points')
+local client  = require('client')
 
 function love.load() -- On game load
     client:init()
@@ -22,32 +21,34 @@ function love.load() -- On game load
     -- Loading the font that will be used to display the points number
     fonts:loadFont("DS-DIGII", 60)
 
-    points.init()
+    points.init(fonts:getFont('DS-DIGII'))
+    ball:init()
+    player:init()
 end
 
 function love.update(dt)
     ball:move(dt)
 
     if love.keyboard.isDown(config.keys.up) then
-        player:add('here', 1)
-        client:send([[
-            {
-                "action": "move",
-                "data": {
-                    "key": "up"
-                }
-            }
-        ]])
-    elseif love.keyboard.isDown(config.keys.down) then
         player:add('here', -1)
-        client:send([[
-            {
-                "action": "move",
-                "data": {
-                    "key": "down"
-                }
-            }
-        ]])
+        --client:send([[
+        --    {
+        --        "action": "move",
+        --        "data": {
+        --            "key": "up"
+        --        }
+        --    }
+        --]])
+    elseif love.keyboard.isDown(config.keys.down) then
+        player:add('here', 1)
+        --client:send([[
+        --    {
+        --        "action": "move",
+        --        "data": {
+        --            "key": "down"
+        --       }
+        --    }
+        --]])
     end
 
     client:run()
@@ -58,6 +59,6 @@ function love.draw()
     points.draw()
     ball.draw()
 
-    player.draw(0, player.here.y)
-    player.draw(585, player.online.y)
+    player:draw(0, player.here.y)
+    player:draw(585, player.online.y)
 end

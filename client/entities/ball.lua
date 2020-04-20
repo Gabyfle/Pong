@@ -22,7 +22,7 @@ local ball = {
 
 function ball:init()
     local values = { -1, 1 }
-    self.speed.x = values[math.random(1, 2)]
+    self.speed.x = 0
     self.speed.y = 0
     self.speedMultiplier = 300
     ball["pos"] = {

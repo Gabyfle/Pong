@@ -50,16 +50,21 @@ end
 -- @param number y: amount to add on the y-axis
 function player:add(ply, y)
     if not self[ply] then return end
-    local MAX = 200 -- Maximum y
+    local MAX = 500 -- Maximum y
     local MIN = 0
 
     if self[ply].y + y > MAX then
         self[ply].y = MAX
-    elseif self[ply] + y < MIN then
+    elseif self[ply].y + y < MIN then
         self[ply].y = MIN
     else
-        self[ply].y = self[ply] + y
+        self[ply].y = self[ply].y + y
     end
+end
+
+function player:draw(x, y)
+    love.graphics.setColor(player.color)
+    love.graphics.rectangle("fill", x, y, player.width, player.height)
 end
 
 return player

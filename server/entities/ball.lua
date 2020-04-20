@@ -36,6 +36,7 @@ end
 -- @param table one: player's one data table
 -- @param table two: player's two data table
 function ball:collide(one, two)
+    if not (one and two) then return end
     local max, min =
     { -- Maximums table
         ["x"] = 600 - ball.radius * 1.5,

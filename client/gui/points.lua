@@ -5,7 +5,7 @@
 -- Author: Gabyfle            --
 -- License: Apache 2.0        --
 --]--]--------------------[--[--
-package.path = './fonts/?.lua;' .. package.path
+package.path = './client/fonts/?.lua;' .. package.path
 
 local fonts = require('fonts')
 
@@ -16,7 +16,7 @@ local points = {
             y = 5
         },
         [2] = {
-            x = 140,
+            x = 440,
             y = 5
         }
     },
@@ -30,19 +30,19 @@ local points = {
 local ply_one
 local ply_two
 
-function points.init() -- to be called a unique time
-    points.update(0, 0)
+function points.init(font) -- to be called a unique time
+    points.update(0, 0, font)
 end
 
-function points.update(herePoints, onlinePoints)
+function points.update(herePoints, onlinePoints, font)
     if not herePoints then herePoints = 0 end
     if not onlinePoints then onlinePoints = 0 end
 
-    points.pts['local'] = herePoints
-    points.pts['lan'] = onlinePoints
+    points.pts.here = herePoints
+    points.pts.online = onlinePoints
 
-    ply_one = love.graphics.newText(fonts:getFont("DS-DIGII"))
-    ply_two = love.graphics.newText(fonts:getFont("DS-DIGII"))
+    ply_one = love.graphics.newText(font)
+    ply_two = love.graphics.newText(font)
 
     ply_one:set({ { 255, 100, 0, 255 }, tostring(herePoints) })
     ply_two:set({ { 0, 100, 255, 255 }, tostring(onlinePoints) })

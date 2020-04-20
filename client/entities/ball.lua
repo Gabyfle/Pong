@@ -54,3 +54,5 @@ function ball:move(dt)
     ball["pos"].x = ball["pos"].x + self.speed.x * dt * ball.speedMultiplier
     ball["pos"].y = ball["pos"].y + self.speed.y * dt * ball.speedMultiplier
 end
+
+return ball

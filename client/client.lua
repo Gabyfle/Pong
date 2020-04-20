@@ -28,9 +28,9 @@ local client = {
     key = '',
     connected = false,
     game = {
-        players = table.copy(player),
-        ball = table.copy(ball),
-        points = table.copy(points)
+        players = { unpack(player) },
+        ball = { unpack(ball) },
+        points = { unpack(points) }
     },
 
     last = nil
@@ -50,14 +50,14 @@ end
 --- Sends a piece of data to a server
 -- @param string data: serialized data encoded in JSON
 function client:send(data)
-    data = string.pack(data)
+    data = love.data.compress('string', 'lz4', data)
     self.socket:send(data)
 end
 
 function client:receive()
     local data, err = self.socket:receive()
     if data then
-        data = json.decode(data)
+        data = json.decode(love.data.decompress('string', 'lz4', data))
         if not (data['action'] and KNOWN_ACTIONS[data['action']]) then
             print('We received a packet that is not usable. Aborting')
             return
@@ -101,8 +101,18 @@ function client:receive()
         end
 
         self.last = os.time()
+
+        return true
     elseif err ~= 'timeout' then
         error('A fatal error occurred while receiving package from the server. Error: ' .. tostring(err))
+    end
+
+    return false
+end
+
+function client:run()
+    while self:receive() do
+        -- chill bro
     end
 end
 

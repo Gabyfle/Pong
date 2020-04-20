@@ -104,7 +104,7 @@ function server:register(ip, port)
     if #self._players == 2 then
         log('A client with IP: %s tried to connect on the server but we were already 2!', ip)
         -- inform the client that this server is full
-        local register = string.pack([[
+        local register = love.data.compress('string', 'lz4', [[
             {
                 "action": "register",
                 "key": "full"
@@ -119,7 +119,7 @@ function server:register(ip, port)
         ip = ip,
         port = port,
         key = key,
-        data = table.copy(player),
+        data = { unpack(player) },
         last_request = os.time()
     }
     local registered = string.format([[
@@ -129,7 +129,7 @@ function server:register(ip, port)
         }
     ]], key)
 
-    local data = string.pack(registered)
+    local data = love.data.compress('string', 'lz4', registered)
     self:sendToPlayer(key, data)
 end
 
@@ -150,7 +150,7 @@ function server:execute(action, ply, data)
     elseif action == 'ping' then
         if not self.players[ply] then return end
         if data['status'] and data['status'] == 'waiting' then
-            self:sendToPlayer(ply, string.pack([[
+            self:sendToPlayer(ply, love.data.compress('string', 'lz4', [[
                 {
                     "action": "ping",
                     "data": {
@@ -175,8 +175,7 @@ end
 --- When the server receive data from a player, decode it and then update stuff from it
 function server:receive()
     local data, ip, port = self._serv.socket:receivefrom()
-    data = string.unpack(data)
-    data = json.decode(data)
+    data = json.decode(love.data.decompress('string', 'lz4', data))
 
     if data then
         if #self._players < 2 and not (data['key'] and self._players[data['key']]) then
@@ -208,7 +207,7 @@ function server:run()
             if ply.last_request then
                 local delay = os.difftime(os.time(), ply.last_request)
                 if delay > 5 and delay < config.MAX_DELAY - 5 then
-                    self:sendToPlayer(id, string.pack([[
+                    self:sendToPlayer(id, love.data.compress('string', 'lz4', [[
                         {
                             "action": "ping",
                             "data": {
@@ -244,7 +243,7 @@ end
 --- Sends some data to all the players
 -- @param string data: data encoded in JSON format
 function server:broadcast(data)
-    data = string.pack(data)
+    data = love.data.compress('data', 'lz4', data)
     for _, ply in pairs(self._players) do
         self:sendToPlayer(ply, data)
     end

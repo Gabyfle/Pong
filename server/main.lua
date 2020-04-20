@@ -24,3 +24,10 @@ function love.update(dt)
     ball:collide()
     ball:move(dt)
 end
+
+function love.draw()
+    net.draw()
+    points.draw()
+    ball.draw()
+
+end

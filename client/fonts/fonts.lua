@@ -19,7 +19,7 @@ function fonts:loadFont(name, size)
         love.errorhandler("Font size should be a number")
         return false
     end
-    
+
     local font_path = "fonts/" .. name .. ".ttf"
     self.fonts[name] = love.graphics.newFont(font_path, size)
 end

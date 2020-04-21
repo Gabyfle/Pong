@@ -44,13 +44,14 @@ function client:init()
     self.socket:setpeername(config.server.ip, config.server.port)
 
     -- when everything is setup, we try to register to the server by sending a packet
-    self:send('')
+    self:send('{}')
 end
 
 --- Sends a piece of data to a server
 -- @param string data: serialized data encoded in JSON
 function client:send(data)
     data = love.data.compress('string', 'lz4', data)
+    print(love.data.decompress('string', 'lz4', data))
     self.socket:send(data)
 end
 
@@ -74,14 +75,7 @@ function client:receive()
             local ping = data['data']
             if not ping['status'] then return end
             if ping['status'] == 'waiting' then
-                self:send([[
-                    {
-                        "action": "ping",
-                        "data": {
-                            "status": "ok"
-                        }
-                    }
-                ]])
+                self:send([[{"action": "ping","data": {"status": "ok"}}]])
             end
         elseif data['action'] == 'players' then
             local ply_data = data['data']

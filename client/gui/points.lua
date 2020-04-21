@@ -5,7 +5,7 @@
 -- Author: Gabyfle            --
 -- License: Apache 2.0        --
 --]--]--------------------[--[--
-package.path = './client/fonts/?.lua;' .. package.path
+package.path = './fonts/?.lua;' .. package.path
 
 local fonts = require('fonts')
 

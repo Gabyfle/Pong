@@ -13,8 +13,8 @@ local config = {
 	},
 	-- server to join
 	server = {
-		ip = "127.0.0.1",
-		port = 1234
+		ip = '0.0.0.0',
+		port = 8080
 	}
 }
 

@@ -103,12 +103,7 @@ function server:register(ip, port)
     if #self._players == 2 then
         log('A client with IP: %s tried to connect on the server but we were already 2!', ip)
         -- inform the client that this server is full
-        local register = love.data.compress('string', 'lz4', [[
-            {
-                "action": "register",
-                "key": "full"
-            }
-        ]])
+        local register = love.data.compress('string', 'lz4', [[{"action": "register","key": "full"}]])
         self:sendTo(ip, port, register)
         return
     end
@@ -121,12 +116,7 @@ function server:register(ip, port)
         data = { unpack(player) },
         last_request = os.time()
     }
-    local registered = string.format([[
-        {
-            "action": "register",
-            "key": %s
-        }
-    ]], key)
+    local registered = string.format([[{"action": "register","key": %s}]], key)
 
     local data = love.data.compress('string', 'lz4', registered)
     self:sendToPlayer(key, data)
@@ -145,18 +135,11 @@ function server:execute(action, ply, data)
         if not self.players[ply] then return end
         local ply_data = self._players[ply].data
         if not data['key'] then return end -- maybe the data is corrupted so abort
-        KNOWN_ACTIONS[action](ply_data, data['key'])
+        print(data)
     elseif action == 'ping' then
         if not self.players[ply] then return end
         if data['status'] and data['status'] == 'waiting' then
-            self:sendToPlayer(ply, love.data.compress('string', 'lz4', [[
-                {
-                    "action": "ping",
-                    "data": {
-                        "status": "ok"
-                    }
-                }
-            ]]))
+            self:sendToPlayer(ply, love.data.compress('string', 'lz4', [[{"action": "ping","data": {"status": "ok"}}]]))
         end
     end
 end
@@ -175,7 +158,9 @@ end
 function server:receive()
     local data, ip, port = self._serv.socket:receivefrom()
     if data then
-        data = json.decode(love.data.decompress('string', 'lz4', data))
+        print(data)
+        data = pcall(json.decode(love.data.decompress('string', 'lz4', data)))
+        if not data then return end
         if #self._players < 2 and not (data['key'] and self._players[data['key']]) then
             self:register()
         else
@@ -205,14 +190,7 @@ function server:run()
             if ply.last_request then
                 local delay = os.difftime(os.time(), ply.last_request)
                 if delay > 5 and delay < config.MAX_DELAY - 5 then
-                    self:sendToPlayer(id, love.data.compress('string', 'lz4', [[
-                        {
-                            "action": "ping",
-                            "data": {
-                                "status": waiting
-                            }
-                        }
-                    ]]))
+                    self:sendToPlayer(id, love.data.compress('string', 'lz4', [[{"action": "ping","data": {"status": waiting}}]]))
                 elseif delay > config.MAX_DELAY then
                     self:timedout(id)
                 end

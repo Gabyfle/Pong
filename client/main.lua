@@ -31,24 +31,10 @@ function love.update(dt)
 
     if love.keyboard.isDown(config.keys.up) then
         player:add('here', -1)
-        --client:send([[
-        --    {
-        --        "action": "move",
-        --        "data": {
-        --            "key": "up"
-        --        }
-        --    }
-        --]])
+        client:send([[{"action": "move","data": {"key": "up"}}]])
     elseif love.keyboard.isDown(config.keys.down) then
         player:add('here', 1)
-        --client:send([[
-        --    {
-        --        "action": "move",
-        --        "data": {
-        --            "key": "down"
-        --       }
-        --    }
-        --]])
+        client:send([[{"action": "move","data": {"key": "down"}}]])
     end
 
     client:run()

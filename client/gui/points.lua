@@ -5,10 +5,6 @@
 -- Author: Gabyfle            --
 -- License: Apache 2.0        --
 --]--]--------------------[--[--
-package.path = './fonts/?.lua;' .. package.path
-
-local fonts = require('fonts')
-
 local points = {
     pos = {
         [1] = {

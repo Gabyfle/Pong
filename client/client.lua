@@ -9,7 +9,7 @@ package.path = '../shared/libs/?.lua;' .. package.path
 
 local config = require('config')
 local socket = require('socket')
-local json   = require('cjson')
+local json   = require('json')
 
 -- load all the stuff
 local player = require('entities.player')

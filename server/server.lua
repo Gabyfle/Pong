@@ -32,9 +32,17 @@ local KNOWN_ACTIONS =
 --- Generates a random string
 -- @return string: the randomly generated string
 local function randomString()
-    local string = ""
+    local prohibed = {
+        ['"'] = true,
+        ['\\'] = true,
+        ['\t'] = true
+    }
+    local string = ''
     for i = 1, 16 do
         local char = math.random(33, 126)
+        while prohibed[string.char(char)] do
+            char = math.random(33, 126)
+        end
         string = string .. string.char(char)
     end
 
@@ -75,9 +83,9 @@ local server = {
 -- @param number port
 function server:init(port)
     -- Log file stuff
-    self._serv.log = string.format('pong_server_log_%s.log', os.date('%m_%d_%y_%X',os.time()))
+    self._serv.log = string.format('pong_server_log_%s.log', os.date('%m_%d_%y_%H_%M_%S',os.time()))
     do
-        local file = io.open(self._serv.log, 'w')
+        local file = io.open(self._serv.log, 'w+')
         file:write()
         file:close()
     end
@@ -101,12 +109,14 @@ end
 -- @param number port: Client PORT
 function server:register(ip, port)
     if #self._players == 2 then
-        log('A client with IP: %s tried to connect on the server but we were already 2!', ip)
+        log('A client with IP: %s tried to connect on the server but we were already 2!', self._serv.log, ip)
         -- inform the client that this server is full
         local register = love.data.compress('string', 'lz4', [[{"action": "register","key": "full"}]])
         self:sendTo(ip, port, register)
         return
     end
+
+    log('A client connected with IP: %s and PORT: %s!', self._serv.log, ip, port)
 
     local key = randomString() -- this is the player's unique name
     self._players[key] = { -- register this player as an actual player (lel)
@@ -116,10 +126,10 @@ function server:register(ip, port)
         data = { unpack(player) },
         last_request = os.time()
     }
-    local registered = string.format([[{"action": "register","key": %s}]], key)
+    local registered = string.format([[{"action": "register", "data":{"key": "%s"}}]], key)
 
     local data = love.data.compress('string', 'lz4', registered)
-    self:sendToPlayer(key, data)
+    self:sendToPlayer(self._players[key], data)
 end
 
 --- Execute a particular action on player ply
@@ -128,14 +138,13 @@ end
 -- @param table data: a table containing the received data
 function server:execute(action, ply, data)
     if not KNOWN_ACTIONS[action] then
-        log('Someone tried to launch an unknown action called %s', ply)
+        log('Someone tried to launch an unknown action called %s', self._serv.log, ply)
     end
 
     if action == 'move' then
         if not self.players[ply] then return end
         local ply_data = self._players[ply].data
         if not data['key'] then return end -- maybe the data is corrupted so abort
-        print(data)
     elseif action == 'ping' then
         if not self.players[ply] then return end
         if data['status'] and data['status'] == 'waiting' then
@@ -145,34 +154,35 @@ function server:execute(action, ply, data)
 end
 
 --- Launched when a player timed out, disconnect him
--- @param string ply: player's authentification key
+-- @param table ply: player's authentification key
 function server:timedout(ply)
-    if not self._players[ply] then
-        error('Player ' .. ply .. ' does not exist')
-    end
-    log('Player with IP: %s and key: has been disconnected', self._players[ply], self._players[ply].key)
-    self._players[ply] = nil
+    log('Player with IP: %s and key: %s has been disconnected', self._serv.log, ply.ip, ply.key)
+    self._players[ply.key] = nil
 end
 
 --- When the server receive data from a player, decode it and then update stuff from it
 function server:receive()
     local data, ip, port = self._serv.socket:receivefrom()
     if data then
-        print(data)
-        data = pcall(json.decode(love.data.decompress('string', 'lz4', data)))
-        if not data then return end
+        local status, data = pcall(function()
+            return json.decode(love.data.decompress('string', 'lz4', data))
+        end)
+        if not status then
+            log('Something wrong happened with the data. Client IP: %s', self._serv.log, data or 'can\'t get error message')
+            return
+        end
         if #self._players < 2 and not (data['key'] and self._players[data['key']]) then
-            self:register()
+            self:register(ip, port)
         else
             if not (data['key'] and self._players[data['key']]) then
                 log('A client tried to connect on server with IP: %s and PORT: %s', self._serv.log, ip, port)
-                log('Actually, he didn\'t send any registered key, so I just rejected him!')
+                log('Actually, he didn\'t send any registered key, so I just rejected him!', self._serv.log)
                 return
             end
             local ply, action = data['key'], data['action']
             self._players[ply].last_request = os.time()
             if not (action and KNOWN_ACTIONS[action]) then
-                log('Player %s sent an unknown action: %s', ply, action)
+                log('Player %s sent an unknown action: %s', self._serv.log, ply, action)
             else
                 server:execute(ply, action)
             end
@@ -190,9 +200,9 @@ function server:run()
             if ply.last_request then
                 local delay = os.difftime(os.time(), ply.last_request)
                 if delay > 5 and delay < config.MAX_DELAY - 5 then
-                    self:sendToPlayer(id, love.data.compress('string', 'lz4', [[{"action": "ping","data": {"status": waiting}}]]))
+                    self:sendToPlayer(ply, love.data.compress('string', 'lz4', [[{"action": "ping","data": {"status": "waiting"}}]]))
                 elseif delay > config.MAX_DELAY then
-                    self:timedout(id)
+                    self:timedout(ply)
                 end
             end
         end
@@ -205,7 +215,12 @@ end
 -- @param table ply: the player to send the data on
 -- @param binary string data: the serialized data encoded in json
 function server:sendToPlayer(ply, data)
-    self._serv.socket:sendto(data, ply.ip, ply.port)
+    local status, err = pcall(function ()
+        return self._serv.socket:sendto(data, ply.ip, ply.port)
+    end)
+    if not status then
+        log('An error happened while trying to send data to player : %s. Error : %s', self._serv.log, ply.ip, err)
+    end
 end
 
 --- Sends a piece of data to a particular client

@@ -51,7 +51,6 @@ end
 -- @param string data: serialized data encoded in JSON
 function client:send(data)
     data = love.data.compress('string', 'lz4', data)
-    print(love.data.decompress('string', 'lz4', data))
     self.socket:send(data)
 end
 

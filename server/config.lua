@@ -10,6 +10,6 @@ local config = {}
 
 
 config.MAX_DELAY = 15 -- max delay between two answers from the client
-config.PORT = 8080 -- server port
+config.PORT = 13234 -- server port
 
 return config

@@ -44,7 +44,7 @@ function client:init()
     self.socket:setpeername(config.server.ip, config.server.port)
 
     -- when everything is setup, we try to register to the server by sending a packet
-    self:send('{}')
+    self:send('{"action": "register"}')
 end
 
 --- Sends a piece of data to a server
@@ -57,7 +57,14 @@ end
 function client:receive()
     local data, err = self.socket:receive()
     if data then
-        data = json.decode(love.data.decompress('string', 'lz4', data))
+        print(love.data.decompress('string', 'lz4', data))
+        local status, data = pcall(function()
+            return json.decode(love.data.decompress('string', 'lz4', data))
+        end)
+        if not status then
+            print('An error occurred on the last received data. Error : ' .. data)
+            return
+        end
         if not (data['action'] and KNOWN_ACTIONS[data['action']]) then
             print('We received a packet that is not usable. Aborting')
             return
@@ -69,12 +76,14 @@ function client:receive()
             else
                 self.key = data['data']['key']
                 self.connected = true
+
+                print('You\'ve been accepted by the server!')
             end
         elseif data['action'] == 'ping' then
             local ping = data['data']
             if not ping['status'] then return end
             if ping['status'] == 'waiting' then
-                self:send([[{"action": "ping","data": {"status": "ok"}}]])
+                self:send(string.format([[{"key": "%s", "action": "ping","data": {"status": "ok"}}]], self.key))
             end
         elseif data['action'] == 'players' then
             local ply_data = data['data']
@@ -90,7 +99,7 @@ function client:receive()
 
             self.game.ball.angle = data['angle']
             self.game.ball.speedMultiplier = ball_data['speedMultiplier']
-            self.game.ball.angleHasBeenComputed = false            
+            self.game.ball.angleHasBeenComputed = false
         end
 
         self.last = os.time()

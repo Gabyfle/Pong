@@ -12,9 +12,10 @@ local socket = require('socket')
 local json   = require('json')
 
 -- load all the stuff
-local player = require('entities.player')
-local ball   = require('entities.ball')
-local points = require('gui.points')
+local player  = require('entities.player')
+local ball    = require('entities.ball')
+local points  = require('gui.points')
+local message = require('gui.message')
 
 local KNOWN_ACTIONS = {
     ['ping'] = true,
@@ -116,6 +117,19 @@ function client:run()
     while self:receive() do
         -- chill bro
     end
+end
+
+--- Returns the player table of the client
+--@return string: the authentification key
+function client:getKey()
+    if not self.connected then return end
+    return self.key
+end
+
+--- Returns whether or not we're connected to a server
+-- @return bool
+function client:isConnected()
+    return self.connected
 end
 
 return client

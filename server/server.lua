@@ -95,7 +95,7 @@ function server:init(port)
     self._serv.socket = assert(socket.udp())
     self._serv.socket:settimeout(0)
     log('Trying to bind your server to a IP/PORT...', self._serv.log)
-    self._serv.socket:setsockname('*', port)
+    self._serv.socket:setsockname('0.0.0.0', port)
 
     -- print to the client that everything is okay
     log('Your Pong server has been initialized', self._serv.log, self._serv.log)
@@ -138,15 +138,15 @@ end
 -- @param table data: a table containing the received data
 function server:execute(action, ply, data)
     if not KNOWN_ACTIONS[action] then
-        log('Someone tried to launch an unknown action called %s', self._serv.log, ply)
+        log('Someone tried to launch an unknown action called %s', self._serv.log, action)
     end
 
     if action == 'move' then
-        if not self.players[ply] then return end
+        if not self._players[ply] then return end
         local ply_data = self._players[ply].data
         if not data['key'] then return end -- maybe the data is corrupted so abort
     elseif action == 'ping' then
-        if not self.players[ply] then return end
+        if not self._players[ply] then return end
         if data['status'] and data['status'] == 'waiting' then
             self:sendToPlayer(ply, love.data.compress('string', 'lz4', [[{"action": "ping","data": {"status": "ok"}}]]))
         end
@@ -171,7 +171,7 @@ function server:receive()
             log('Something wrong happened with the data. Client IP: %s', self._serv.log, data or 'can\'t get error message')
             return
         end
-        if #self._players < 2 and not (data['key'] and self._players[data['key']]) then
+        if #self._players < 2 and data['register'] and not (data['key'] and self._players[data['key']]) then
             self:register(ip, port)
         else
             if not (data['key'] and self._players[data['key']]) then
@@ -184,7 +184,7 @@ function server:receive()
             if not (action and KNOWN_ACTIONS[action]) then
                 log('Player %s sent an unknown action: %s', self._serv.log, ply, action)
             else
-                server:execute(ply, action)
+                server:execute(action, ply, data)
             end
         end
     elseif ip ~= 'timeout' then
@@ -199,9 +199,10 @@ function server:run()
         for id, ply in pairs(self._players) do
             if ply.last_request then
                 local delay = os.difftime(os.time(), ply.last_request)
-                if delay > 5 and delay < config.MAX_DELAY - 5 then
+                if delay > config.MAX_DELAY - 15 and delay < config.MAX_DELAY - 5 then
                     self:sendToPlayer(ply, love.data.compress('string', 'lz4', [[{"action": "ping","data": {"status": "waiting"}}]]))
                 elseif delay > config.MAX_DELAY then
+                    log('Player %s has exceeded the maximum unanswered time (%d).', self._serv.log, id, config.MAX_DELAY)
                     self:timedout(ply)
                 end
             end

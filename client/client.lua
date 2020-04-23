@@ -73,11 +73,10 @@ function client:receive()
 
         if data['action'] == 'register' then
             if data['data']['key'] == 'full' then
-                -- the server is full, should display to screen that this server is full
+                message:draw('serverFull', 0, string.format('The server with IP %s is full! Choose an other one!', config.server.ip), { 255, 0, 0, 255 }, -295, 50)
             else
                 self.key = data['data']['key']
                 self.connected = true
-
                 print('You\'ve been accepted by the server!')
             end
         elseif data['action'] == 'ping' then

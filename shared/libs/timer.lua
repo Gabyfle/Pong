@@ -51,9 +51,7 @@ end
 
 --- Completely stops a timer
 function timer:stop(name)
-    if not self._timers[name] then
-        error('Unknown timer called ' .. name)
-    end
+    if not self._timers[name] then return end
 
     self._timers[name] = nil
 end
@@ -64,20 +62,18 @@ end
 -- @param number delay: delay between each repeatition
 -- @param function callback: callback function to call right after a repeatition ended
 function timer:regular(name, repeatitions, delay, callback,  ...)
-    if self._timer[name] then
-        error('You\'re using an already existing name')
-    end
+    if self._timers[name] then return end
 
     self._timers[name] = {
         repeats = repeatitions,
         thread = coroutine.create(delayer)
     }
 
-    while self._times[name].repeats do
+    while self._timers[name].repeats do
         coroutine.resume(self._timers[name].thread, delay)
 
         while coroutine.status(self._timers[name].thread) ~= 'dead' do
-            if coroutine.status(self._timers[name].repeats) == 'suspended' then
+            if coroutine.status(self._timers[name].thread) == 'suspended' then
                 coroutine.resume(self._timers[name].thread)
                 sleep(0.01)
             end
@@ -85,7 +81,7 @@ function timer:regular(name, repeatitions, delay, callback,  ...)
 
         --- we give to callback the number of left repeatitions
         self._timers[name].repeats = self._timers[name].repeats - 1
-        callback(self._times[name].repeats, ...)
+        callback(self._timers[name].repeats, ...)
     end
 
 end

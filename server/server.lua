@@ -20,14 +20,24 @@ math.randomseed(os.time())
 local KNOWN_ACTIONS =
 {
     ['ping'] = true,
-    ['move'] = function (ply, key)
-        if key == 'up' then
-            ply:update(ply.y + 1)
-        elseif key == 'down' then
-            ply:update(ply.y - 1)
-        end
-    end
+    ['move'] = true
 }
+
+-- from http://lua-users.org/wiki/CopyTable
+local function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
 
 --- Generates a random string
 -- @return string: the randomly generated string
@@ -76,7 +86,8 @@ local server = {
         port   = nil,
         log    = nil
     },
-    _players = {}
+    _players = {},
+    plyCount = 0
 }
 
 --- Server initialization
@@ -108,10 +119,10 @@ end
 -- @param number ip: Client IP
 -- @param number port: Client PORT
 function server:register(ip, port)
-    if #self._players == 2 then
+    if self.plyCount >= 2 then
         log('A client with IP: %s tried to connect on the server but we were already 2!', self._serv.log, ip)
         -- inform the client that this server is full
-        local register = love.data.compress('string', 'lz4', [[{"action": "register","key": "full"}]])
+        local register = love.data.compress('string', 'lz4', [[{"action": "register", "data": {"key": "full"}}]])
         self:sendTo(ip, port, register)
         return
     end
@@ -123,32 +134,41 @@ function server:register(ip, port)
         ip = ip,
         port = port,
         key = key,
-        data = { unpack(player) },
+        data = deepcopy(player),
         last_request = os.time()
     }
     local registered = string.format([[{"action": "register", "data":{"key": "%s"}}]], key)
 
     local data = love.data.compress('string', 'lz4', registered)
     self:sendToPlayer(self._players[key], data)
+    self.plyCount = self.plyCount + 1
 end
 
 --- Execute a particular action on player ply
 -- @param string action: action to execute
--- @param string ply: player to execute the action on or IP to register
+-- @param string key: player to execute the action on or IP to register
 -- @param table data: a table containing the received data
-function server:execute(action, ply, data)
+function server:execute(action, key, data)
     if not KNOWN_ACTIONS[action] then
         log('Someone tried to launch an unknown action called %s', self._serv.log, action)
     end
 
+    if not data then return end
+
     if action == 'move' then
-        if not self._players[ply] then return end
-        local ply_data = self._players[ply].data
+        if not self._players[key] then return end
+        local ply = self._players[key].data
         if not data['key'] then return end -- maybe the data is corrupted so abort
+
+        if data['key'] == 'up' then
+            ply:update(ply:getpos() - 1)
+        elseif data['key'] == 'down' then
+            ply:update(ply:getpos() + 1)
+        end
     elseif action == 'ping' then
-        if not self._players[ply] then return end
+        if not self._players[key] then return end
         if data['status'] and data['status'] == 'waiting' then
-            self:sendToPlayer(ply, love.data.compress('string', 'lz4', [[{"action": "ping","data": {"status": "ok"}}]]))
+            self:sendToPlayer(self._players[key], love.data.compress('string', 'lz4', [[{"action": "ping","data": {"status": "ok"}}]]))
         end
     end
 end
@@ -158,6 +178,7 @@ end
 function server:timedout(ply)
     log('Player with IP: %s and key: %s has been disconnected', self._serv.log, ply.ip, ply.key)
     self._players[ply.key] = nil
+    self.plyCount = self.plyCount - 1
 end
 
 --- When the server receive data from a player, decode it and then update stuff from it
@@ -171,7 +192,7 @@ function server:receive()
             log('Something wrong happened with the data. Client IP: %s', self._serv.log, data or 'can\'t get error message')
             return
         end
-        if #self._players < 2 and data['register'] and not (data['key'] and self._players[data['key']]) then
+        if #self._players < 2 and data['action'] == 'register' and not (data['key'] and self._players[data['key']]) then
             self:register(ip, port)
         else
             if not (data['key'] and self._players[data['key']]) then
@@ -184,7 +205,7 @@ function server:receive()
             if not (action and KNOWN_ACTIONS[action]) then
                 log('Player %s sent an unknown action: %s', self._serv.log, ply, action)
             else
-                server:execute(action, ply, data)
+                server:execute(action, ply, data['data'])
             end
         end
     elseif ip ~= 'timeout' then
@@ -239,6 +260,12 @@ function server:broadcast(data)
     for _, ply in pairs(self._players) do
         self:sendToPlayer(ply, data)
     end
+end
+
+--- Returns the players table
+-- @return table
+function server:getPlayers()
+    return self._players
 end
 
 return server

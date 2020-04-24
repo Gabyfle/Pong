@@ -14,12 +14,15 @@ local player = {
     height = 100,
     y = 250,
     --- Client identification parameters
-    key = nil,
-    ip = nil,
-    port = nil,
-    last = nil
+    client = {
+        key = nil,
+        ip = nil,
+        port = nil,
+        last = nil
+    }
 }
 player.__index = player
+player.__metatable = player
 
 --- Player constructor
 -- @param string ip: Player's IP
@@ -29,9 +32,9 @@ function player:new(key, ip, port)
     local ply = {}
     setmetatable(ply, self)
 
-    ply.key = key
-    ply.ip = ip
-    ply.port = port
+    ply.client.key = key
+    ply.client.ip = ip
+    ply.client.port = port
 
     return ply
 end
@@ -56,7 +59,7 @@ end
 -- @param table player
 -- @return string: player's authentification key
 function player:__tostring()
-    return self.key
+    return self.client.key
 end
 
 --- Unary operator # : returns the height of the player
@@ -70,34 +73,14 @@ end
 -- @param string name: name of the data to return
 -- @return any
 function player:get(name)
-    if name == 'key' then
-        return self.key
-    elseif name == 'ip' then
-        return self.ip
-    elseif name == 'port' then
-        return self.port
-    elseif name == 'last' then
-        return self.last
-    else
-        return nil
-    end
+    return self.client[name]
 end
 
 --- Sets a value to player[name]
 -- @param string name: name of the parameter to set
 -- @param any value: value to set
 function player:set(name, value)
-    if name == 'key' then
-        self.key = value
-    elseif name == 'ip' then
-        self.ip = value
-    elseif name == 'port' then
-        self.port = value
-    elseif name == 'last' then
-        self.last = value
-    else
-        return nil
-    end
+    self.client[name] = value
 end
 
-return setmetatable(player, player)
+return player

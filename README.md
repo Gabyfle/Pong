@@ -83,7 +83,7 @@ Game data is transferred from client to server (vice-versa) throught network in 
 
 ## Credits
 ### Code
-* **<ins>Author</ins>** : **Gabriel Santamaria**
+ * **Gabriel Santamaria**, main code
+ * **[rxi](https://github.com/rxi)** : json.lua library code (used to encode / decode lua tables into JSON strings)
 ### Fonts
-* **<ins>Font name</ins>** : [DS-Digital](https://www.dafont.com/fr/ds-digital.font) (Normal, **Bold**, *Italic*, ***Bold Italic***), *Version 1.0*
-    * **<ins>Author</ins>** : **Dusit Supasawat**
+* [DS-Digital](https://www.dafont.com/fr/ds-digital.font) by **Dusit Supasawat**

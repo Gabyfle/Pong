@@ -9,7 +9,6 @@ local config = require('config')
 local server = require('server')
 -- entities
 local ball   = require('entities.ball')
-local player = require('entities.player')
 
 
 function love.load()
@@ -20,7 +19,7 @@ function love.load()
 end
 
 function love.update(dt)
-    ball:collide()
+    ball:collide(unpack(server:getPlayers()))
     ball:move(dt)
 
     -- then, run the server

@@ -13,7 +13,7 @@ local config = {
 	},
 	-- server to join
 	server = {
-		ip = '192.168.1.181',
+		ip = '192.168.1.177',
 		port = 15155,
 		max_delay = 40
 	}

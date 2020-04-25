@@ -29,9 +29,9 @@ local client = {
     key = '',
     connected = false,
     game = {
-        players = { unpack(player) },
-        ball = { unpack(ball) },
-        points = { unpack(points) }
+        players = player,
+        ball = ball,
+        points = points
     },
 
     last = nil
@@ -91,8 +91,11 @@ function client:receive()
                 return -- we abort because the data may be corrupted
             end
 
-            self.game.players:add('here', ply_data['here'] - self.game.players:getpos('here'))
-            self.game.players:add('online', ply_data['online'] - self.game.players:getpos('online'))
+            if ply_data['here'] then
+                self.game.players:add('here', ply_data['here'] - self.game.players:getpos('here'))
+            elseif ply_data['online'] then
+                self.game.players:add('online', ply_data['online'] - self.game.players:getpos('online'))
+            end
         elseif data['action'] == 'ball' then
             local ball_data = data['data']
             if not (ball_data['angle'] and ball_data['speedMultiplier']) then return end

@@ -7,6 +7,19 @@
 --]--]--------------------[--[--
 package.path = '../shared/libs/?.lua;' .. package.path
 
+local function dump(o)
+    if type(o) == 'table' then
+       local s = '{ '
+       for k,v in pairs(o) do
+          if type(k) ~= 'number' then k = '"'..k..'"' end
+          s = s .. '['..k..'] = ' .. dump(v) .. ','
+       end
+       return s .. '} '
+    else
+       return tostring(o)
+    end
+ end
+
 local config  = require('config')
 local socket  = require('socket')
 local json    = require('json')
@@ -76,7 +89,7 @@ end
 -- @param number ip: Client IP
 -- @param number port: Client PORT
 function server:register(ip, port)
-    if #self._players >= 2 then
+    if self._players:playerCount() >= 2 then
         self._serv:log('A client with IP: %s tried to connect on the server but we were already 2!', ip)
         -- inform the client that this server is full
         local register = [[{"action": "register", "data": {"key": "full"}}]]
@@ -88,7 +101,7 @@ function server:register(ip, port)
 
     local key = randomString() -- this is the player's unique name
 
-    self._players = self._players + player:new(key, ip, port) -- adds a new player to the players table
+    self._players:add(player:new(key, ip, port)) -- adds a new player to the players table
     local registered = string.format([[{"action": "register", "data":{"key": "%s"}}]], key)
 
     self:sendToPlayer(self._players:getPlayer(key), registered)
@@ -109,14 +122,14 @@ function server:execute(action, ply, data)
         if not data['key'] then return end -- maybe the data is corrupted so abort
 
         if data['key'] == 'up' then
-            ply = ply + 1
+            ply:add(-1)
         elseif data['key'] == 'down' then
-            ply = ply + (-1)
+            ply:add(1)
         end
 
         -- get the other player's data to send him the position of this player
         local otherPly = self._players:getOtherPlayer(tostring(ply))
-        self:sendTo(otherPly, string.format('[[{"action": "players", "data":{"online": %d, "here": %d}}]]', #ply, #otherPly))
+        self:sendToPlayer(otherPly, string.format('{"action": "players", "data":{"online": %d}}', #ply))
     elseif action == 'ping' then
         if data['status'] and data['status'] == 'waiting' then
             self:sendToPlayer(ply, [[{"action": "ping","data": {"status": "ok"}}]])
@@ -128,7 +141,7 @@ end
 -- @param table ply: player's authentification key
 function server:timedout(ply)
     self._serv:log('Player with IP: %s and key: %s has been disconnected', ply:get('ip'), ply:get('key'))
-    self._players = self._players - self._players:getPlayer(ply)
+    self._players:delete(ply:get('key'))
 end
 
 --- When the server receive data from a player, decode it and then update stuff from it
@@ -142,7 +155,7 @@ function server:receive()
             self._serv:log('Something wrong happened with the data. Client IP: %s', data or 'can\'t get error message')
             return
         end
-        if #self._players < 2 and data['action'] == 'register' and not (data['key'] and self._players:getPlayer(data['key'])) then
+        if self._players:playerCount() < 2 and data['action'] == 'register' and not (data['key'] and self._players:getPlayer(data['key'])) then
             self:register(ip, port)
         else
             if not (data['key'] and self._players:getPlayer(data['key'])) then
@@ -179,7 +192,7 @@ function server:run()
             end
         end
         self:receive()
-        socket.sleep(0.001)
+        socket.sleep(0.1)
     end
 end
 

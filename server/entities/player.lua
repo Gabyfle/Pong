@@ -8,21 +8,9 @@
 local MAX = 500 -- Maximum y
 local MIN = 0
 
-local player = {
-    --- Game parameters
-    width = 15,
-    height = 100,
-    y = 250,
-    --- Client identification parameters
-    client = {
-        key = nil,
-        ip = nil,
-        port = nil,
-        last = nil
-    }
-}
+local player = {}
+
 player.__index = player
-player.__metatable = player
 
 --- Player constructor
 -- @param string ip: Player's IP
@@ -32,6 +20,12 @@ function player:new(key, ip, port)
     local ply = {}
     setmetatable(ply, self)
 
+    ply.width = 15
+    ply.height = 100
+    ply.y = 250
+
+    ply.client = {}
+
     ply.client.key = key
     ply.client.ip = ip
     ply.client.port = port
@@ -39,10 +33,10 @@ function player:new(key, ip, port)
     return ply
 end
 
---- Binary operator +
+--- Adds some height to the player
 -- @param table player: player to add height
 -- @param number height
-function player:__add(height)
+function player:add(height)
     if not type(height) == 'number' then return end
     if (self.y + height > MAX) then
         self.y = MAX
@@ -65,7 +59,7 @@ end
 --- Unary operator # : returns the height of the player
 -- @param table player
 -- @return number: player's height
-function player:__len()
+function player:getHeight()
     return self.y
 end
 
@@ -83,4 +77,4 @@ function player:set(name, value)
     self.client[name] = value
 end
 
-return player
+return setmetatable(player, player)

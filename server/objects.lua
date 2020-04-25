@@ -14,28 +14,34 @@ local tags = { 1, 2 }
 
 local players = {
     tags = {},
+    plytbl = {},
     plyCount = 0
 }
 players.__index = players
 
-function players:__call()
-    local plys = {}
-    setmetatable(plys, self)
 
-    return plys
+--- Players constructor
+-- @return players
+function players:__call()
+    return self
 end
 
 --- Adds a player to the players
 -- @param table players: players table
 -- @param table ply: Player to add to the players table
-function players:__add(ply)
+function players:add(ply)
     if not getmetatable(ply) == player then return end
     if self.plyCount >= 2 then return end
 
-    self[tostring(ply)] = ply
+    self.plytbl[tostring(ply)] = ply
     self.tags[tostring(ply)] = tags[#tags]
     table.remove(tags, #tags)
     self.plyCount = self.plyCount + 1
+
+    for k, v in pairs(self.plytbl) do
+        print(k)
+        print(v:get('ip') .. ' PORT  ' .. v:get('port'))
+    end
 
     return self
 end
@@ -43,11 +49,11 @@ end
 --- Delete a player from the players table
 -- @param table players: players table
 -- @param table player: player to delete
-function players:__sub(ply)
+function players:delete(ply)
     if not getmetatable(ply) == player then return end
-    if not self[tostring(ply)] then return end
+    if not self.plytbl[tostring(ply)] then return end
 
-    self[tostring(ply)] = nil
+    self.plytbl[tostring(ply)] = nil
     tags[self.tags[tostring(ply)]] = self.tags[tostring(ply)]
     self.plyCount = self.plyCount - 1
 
@@ -57,7 +63,7 @@ end
 --- Returns the number of current players
 -- @param table players: players table
 -- @return number: number of connected players
-function players:__len()
+function players:playerCount()
     return self.plyCount
 end
 
@@ -66,18 +72,16 @@ end
 -- @param string key: player's authentification key
 -- @return table player
 function players:getPlayer(key)
-    return self[key]
+    return self.plytbl[key]
 end
 
 --- Returns the other player (which is the player who have a different authentification key)
 -- @param string key: authentification key
 -- @return table player
 function players:getOtherPlayer(key)
-    for k, v in pairs(self) do
-        if getmetatable(v) == player then
-            if k ~= key then -- we can basically do this cuz we know that we'll got only two players
-                return v
-            end
+    for k, ply in pairs(self.plytbl) do
+        if k ~= key then -- we can basically do this cuz we know that we'll got only two players
+            return ply
         end
     end
 end
@@ -86,10 +90,8 @@ end
 -- @return table players: a table containing all the players
 function players:getPlayers()
     local plys = {}
-    for _, ply in pairs(self) do
-        if (getmetatable(ply) == player) then
-            table.insert(plys, self.tags[ply:get('key')], ply)
-        end
+    for _, ply in pairs(self.plytbl) do
+        table.insert(plys, self.tags[ply:get('key')], ply)
     end
 
     return plys

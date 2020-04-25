@@ -1,5 +1,12 @@
--- FONTS handler
-fonts = {
+--[--[--------------------]--]--
+-- Project: Pong              --
+-- File: fonts.lua            --
+--                            --
+-- Author: Gabyfle            --
+-- License: Apache 2.0        --
+--]--]--------------------[--[--
+
+local fonts = {
     fonts = {} -- contains all the fonts
 }
 
@@ -12,9 +19,9 @@ function fonts:loadFont(name, size)
         love.errorhandler("Font size should be a number")
         return false
     end
-    
-    fontPath = "fonts/" .. name .. ".ttf"
-    self.fonts[name] = love.graphics.newFont(fontPath, size)
+
+    local font_path = 'fonts/' .. name .. '.TTF'
+    self.fonts[name] = love.graphics.newFont(font_path, size)
 end
 
 -- Get a font from the fonts list
@@ -28,3 +35,5 @@ function fonts:getFont(name)
         end
     end
 end
+
+return fonts
